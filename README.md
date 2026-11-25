@@ -31,7 +31,7 @@ Latency at 416 x 416 with batch 1 on an RTX 4090 (FP16) and an Intel i9-10900X (
 ## Results
 
 The table gives the mean over three seeds (2026, 1 and 2), computed with `edgecod/evaluate.py` (PySODMetrics). The
-standard deviations are in Table 7 of the paper and in `training_logs.zip`. E<sub>φ</sub><sup>m</sup> is the mean
+standard deviations are in Table 7 of the paper. E<sub>φ</sub><sup>m</sup> is the mean
 E-measure over 256 thresholds.
 
 | Model | CAMO S<sub>α</sub> / F<sub>β</sub><sup>w</sup> / E<sub>φ</sub><sup>m</sup> / MAE | COD10K | NC4K | CHAMELEON |
@@ -44,18 +44,16 @@ E-measure over 256 thresholds.
 
 ## Downloads
 
-All files are attached to the [v1.0 release](https://github.com/habib1402/EdgeCOD/releases/tag/v1.0).
+The prediction maps are attached to the [v1.0 release](https://github.com/habib1402/EdgeCOD/releases/tag/v1.0).
 
 | File | Content |
 |---|---|
-| `edgecod_{t,s,b}_s{2026,1,2}.pth` | trained weights of the 9 final models (3 variants x 3 seeds); checksums in `SHA256SUMS` |
-| `EdgeCOD-{T,S,B}_prediction_maps.zip` | prediction maps of every seed on CAMO, COD10K, NC4K and CHAMELEON (8-bit PNG, ground-truth size) |
-| `training_logs.zip` | `final_logs/`: config, training log, test scores and per-image scores of the 9 final runs; `design_study_logs/`: config, training log and VAL scores of the design-study runs on the validation split |
-| `visual_results.zip` | full-resolution figures of the paper: qualitative comparison, best and hard cases, HMoE routing maps, Seg-Grad-CAM explanations, accuracy versus size |
+| `EdgeCOD-T_prediction_maps.zip` | EdgeCOD-T, seeds 2026, 1 and 2 |
+| `EdgeCOD-S_prediction_maps.zip` | EdgeCOD-S, seeds 2026, 1 and 2 |
+| `EdgeCOD-B_prediction_maps.zip` | EdgeCOD-B, seeds 2026, 1 and 2 |
 
-The design-study runs cover modules that were tested and removed (for example CRB, DASPP, OSA, MHSA, MSA and
-CACM; see Table 12 of the paper). Their logs were produced with the research version of this code. This repository
-contains only the final architecture.
+Each archive holds `seed<k>/<dataset>/<name>.png` for CAMO, COD10K, NC4K and CHAMELEON (8-bit probability maps at
+the ground-truth size). The results table above can be reproduced from these maps with `tools/score_maps.py`.
 
 ## Installation
 
@@ -85,18 +83,19 @@ Only images that have a ground-truth mask are used.
 
 ## Testing
 
+Evaluate a checkpoint trained with `train.py` (saved as `runs/<run>/last.pth`):
+
 ```bash
-python test.py --config configs/edgecod_s.yaml --weights weights/edgecod_s_s2026.pth --out results/edgecod_s_s2026
+python test.py --config configs/edgecod_s.yaml --weights runs/edgecod_s_s2026/last.pth --out results/edgecod_s_s2026
 ```
 
 This writes the scores to `results/edgecod_s_s2026/results_last.json` and the prediction maps to
-`results/edgecod_s_s2026/maps/last/<dataset>/`. The released weights reproduce the scores in `training_logs.zip`
-exactly.
+`results/edgecod_s_s2026/maps/last/<dataset>/`.
 
-To run the model on your own images:
+To run a trained model on your own images:
 
 ```bash
-python predict.py --config configs/edgecod_s.yaml --weights weights/edgecod_s_s2026.pth \
+python predict.py --config configs/edgecod_s.yaml --weights runs/edgecod_s_s2026/last.pth \
     --input path/to/images --out path/to/maps --overlay
 ```
 
@@ -120,6 +119,7 @@ allocated GPU memory during training was 0.8 GB (T), 1.4 GB (S) and 4.9 GB (B) o
 
 ```bash
 # score any folder of maps with the evaluation code used for all methods in the paper
+# (for the released maps: unzip EdgeCOD-S_prediction_maps.zip and use --pred EdgeCOD-S_maps/seed2026)
 python tools/score_maps.py --pred results/edgecod_s_s2026/maps/last --gt_root data/TestDataset --per_image per_image/s_s2026
 
 # paired bootstrap (10,000 resamples, 95% CI) between two models, seeds averaged per image
