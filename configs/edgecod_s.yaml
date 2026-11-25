@@ -1,0 +1,3 @@
+# EdgeCOD-S: EdgeNeXt-S, separable decoder, 416 x 416 (5.35M parameters, 3.55 GMACs)
+_base_: base.yaml
+model: {backbone: edgenext_small, separable: true, hmoe: false}

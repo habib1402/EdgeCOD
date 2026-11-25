@@ -1,0 +1,3 @@
+# EdgeCOD-B: PVTv2-B3, separable decoder, 416 x 416 (44.83M parameters, 23.31 GMACs)
+_base_: base.yaml
+model: {backbone: pvt_v2_b3, separable: true, hmoe: false}

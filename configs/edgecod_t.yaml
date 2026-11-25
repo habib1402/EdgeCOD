@@ -1,0 +1,3 @@
+# EdgeCOD-T: EdgeNeXt-XXS, full decoder + HMoE, 416 x 416 (1.47M parameters, 2.30 GMACs)
+_base_: base.yaml
+model: {backbone: edgenext_xx_small, separable: false, hmoe: true}

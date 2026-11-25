@@ -1,0 +1,43 @@
+# Shared recipe of all EdgeCOD variants (Section 4.2, Table 3). Variant files set the encoder, decoder and HMoE.
+# Any key can be overridden from the command line, e.g. --set train.epochs=40 data.root=/path/to/data
+out_root: runs
+seed: 2026
+
+data:
+  root: data                                # holds TrainDataset/ and TestDataset/ (see README)
+  train: {image: TrainDataset/CAMO+COD10K/Image, gt: TrainDataset/CAMO+COD10K/GT}
+  test: [CAMO, COD10K, NC4K, CHAMELEON]     # TestDataset/<name>/{Imgs,GT}
+  holdout: 0.0          # 0.1 with holdout_seed 0 holds out the 404-image VAL split (design study)
+  holdout_seed: 0
+  scales: [384, 416, 448]   # multi-scale training, one size per iteration
+  crop: [0.75, 1.0]         # random crop, side fraction
+  hflip: 0.5
+  workers: 6
+  test_size: 416
+
+model:
+  backbone: edgenext_xx_small   # any timm encoder with features at strides 4, 8, 16, 32
+  pretrained: true              # ImageNet weights from timm
+  width: 64                     # common neck and decoder width C
+  separable: false              # depth-wise separable decoder convolutions
+  hmoe: false                   # HMoE refinement after every decoder fusion
+  dropout: 0.3
+
+loss: {iou_weight: 0.5, boundary_weight: 0}
+
+train:
+  epochs: 80
+  batch_size: 8
+  optimizer: adamw
+  lr: 1.0e-4            # neck, decoder, head
+  backbone_lr: 1.0e-4   # encoder
+  weight_decay: 1.0e-2
+  schedule: cosine
+  warmup_iters: 500
+  min_lr_ratio: 0.01
+  amp: bf16
+  log_every: 100
+
+eval:
+  save_maps: true
+  val_every: 10         # VAL learning curve every N epochs (only when data.holdout > 0)
